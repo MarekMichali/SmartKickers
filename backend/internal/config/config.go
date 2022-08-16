@@ -8,6 +8,8 @@ const (
 
 	AttributeTeam   = "team"
 	AttributeAction = "action"
+
+	HeatmapDimension = 100
 )
 
 var (

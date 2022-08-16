@@ -56,6 +56,7 @@ func (s server) createResponse(reader io.Reader) ([]byte, error) {
 		err := s.game.AddGoal(message.Team)
 		return nil, err
 	case adapter.MsgPosition:
+		s.game.WriteToHeatmap(message.X, message.Y)
 		log.Debug("X: ", message.X, " Y: ", message.Y)
 		return nil, nil
 	default:

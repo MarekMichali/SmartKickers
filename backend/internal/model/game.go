@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"math"
 	"sync"
 
 	"github.com/HackYourCareer/SmartKickers/internal/config"
@@ -17,6 +18,7 @@ type Game interface {
 	IsFastestShot(float64) bool
 	SaveFastestShot(adapter.ShotMessage)
 	GetFastestShot() adapter.ShotMessage
+	WriteToHeatmap(float64, float64) error
 }
 
 type game struct {
@@ -24,6 +26,7 @@ type game struct {
 	scoreChannel chan GameScore
 	m            sync.RWMutex
 	fastestShot  adapter.ShotMessage
+	heatmap      [config.HeatmapDimension][config.HeatmapDimension]int
 }
 
 type GameScore struct {
@@ -111,4 +114,20 @@ func (g *game) GetFastestShot() adapter.ShotMessage {
 	defer g.m.RUnlock()
 
 	return g.fastestShot
+}
+
+func (g *game) WriteToHeatmap(xCord float64, yCord float64) error {
+	g.m.Lock()
+	defer g.m.Unlock()
+
+	x := int(math.Round(config.HeatmapDimension * xCord))
+	y := int(math.Round(config.HeatmapDimension * yCord))
+	if x > config.HeatmapDimension-1 || x < 0 {
+		return errors.New("x cord out of index")
+	}
+	if y > config.HeatmapDimension-1 || y < 0 {
+		return errors.New("y cord out of index")
+	}
+	g.heatmap[x][y]++
+	return nil
 }
