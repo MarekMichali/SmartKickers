@@ -3,6 +3,7 @@ import './App.css';
 import { resetGame } from './apis/Game';
 import { Button } from './components/Button';
 import GameResults from './components/GameResults.js';
+import Heatmap from './components/Heatmap';
 
 import config from './config';
 
@@ -11,7 +12,6 @@ function App() {
   const [whiteScore, setWhiteScore] = useState(0);
 
   useEffect(() => {
-
     const socket = new WebSocket(`${config.wsBaseUrl}/score`);
 
     socket.onopen = function () {
@@ -38,6 +38,7 @@ function App() {
       <center>
         <Button onClick={() => handleResetGame()}>Reset game</Button>
       </center>
+      <Heatmap />
     </>
   );
 }
