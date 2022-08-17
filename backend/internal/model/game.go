@@ -17,7 +17,7 @@ type Game interface {
 	SubGoal(int) error
 	IsFastestShot(float64) bool
 	SaveFastestShot(adapter.ShotMessage)
-	GetFastestShot() adapter.ShotMessage
+	GetFastestShot() [config.HeatmapDimension][config.HeatmapDimension]int
 	WriteToHeatmap(float64, float64) error
 }
 
@@ -109,11 +109,11 @@ func (g *game) SaveFastestShot(msg adapter.ShotMessage) {
 	g.fastestShot.Team = msg.Team
 }
 
-func (g *game) GetFastestShot() adapter.ShotMessage {
+func (g *game) GetFastestShot() [config.HeatmapDimension][config.HeatmapDimension]int {
 	g.m.RLock()
 	defer g.m.RUnlock()
 
-	return g.fastestShot
+	return g.heatmap
 }
 
 func (g *game) WriteToHeatmap(xCord float64, yCord float64) error {
