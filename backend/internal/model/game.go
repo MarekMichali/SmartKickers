@@ -2,11 +2,14 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"sync"
 
 	"github.com/HackYourCareer/SmartKickers/internal/config"
 	"github.com/HackYourCareer/SmartKickers/internal/controller/adapter"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Game interface {
@@ -15,17 +18,16 @@ type Game interface {
 	GetScore() GameScore
 	GetScoreChannel() chan GameScore
 	SubGoal(int) error
-	IsFastestShot(float64) bool
-	SaveFastestShot(adapter.ShotMessage)
-	GetFastestShot() adapter.ShotMessage
 	WriteToHeatmap(float64, float64) error
+	UpdateShotsData(adapter.ShotMessage) error
+	GetShotsData() ShotsData
 }
 
 type game struct {
 	score        GameScore
+	shotsData    ShotsData
 	scoreChannel chan GameScore
 	m            sync.RWMutex
-	fastestShot  adapter.ShotMessage
 	heatmap      [config.HeatmapDimension][config.HeatmapDimension]int
 }
 
@@ -34,11 +36,18 @@ type GameScore struct {
 	WhiteScore int `json:"whiteScore"`
 }
 
+type ShotsData struct {
+	WhiteCount int
+	BlueCount  int
+	Fastest    adapter.ShotMessage
+}
+
 func NewGame() Game {
 	return &game{scoreChannel: make(chan GameScore, 32)}
 }
 
 func (g *game) ResetScore() {
+	log.Trace("mutex lock: ResetScore")
 	g.m.Lock()
 	defer g.m.Unlock()
 	g.score.BlueScore = 0
@@ -47,6 +56,7 @@ func (g *game) ResetScore() {
 }
 
 func (g *game) AddGoal(teamID int) error {
+	log.Trace("mutex lock: AddGoal")
 	g.m.Lock()
 	defer g.m.Unlock()
 
@@ -64,6 +74,7 @@ func (g *game) AddGoal(teamID int) error {
 }
 
 func (g *game) GetScore() GameScore {
+	log.Trace("mutex lock: GetScore")
 	g.m.RLock()
 	defer g.m.RUnlock()
 
@@ -75,6 +86,7 @@ func (g *game) GetScoreChannel() chan GameScore {
 }
 
 func (g *game) SubGoal(teamID int) error {
+	log.Trace("mutex lock: SubGoal")
 	g.m.Lock()
 	defer g.m.Unlock()
 
@@ -95,25 +107,42 @@ func (g *game) SubGoal(teamID int) error {
 	return nil
 }
 
-func (g *game) IsFastestShot(speed float64) bool {
-	g.m.RLock()
-	defer g.m.RUnlock()
-
-	return g.fastestShot.Speed < speed
-}
-
-func (g *game) SaveFastestShot(msg adapter.ShotMessage) {
+func (g *game) UpdateShotsData(shot adapter.ShotMessage) error {
+	log.Trace("mutex lock: UpdateRecordedShots")
 	g.m.Lock()
 	defer g.m.Unlock()
-	g.fastestShot.Speed = msg.Speed
-	g.fastestShot.Team = msg.Team
+
+	switch shot.Team {
+	case config.TeamWhite:
+		g.shotsData.WhiteCount++
+	case config.TeamBlue:
+		g.shotsData.BlueCount++
+	default:
+		return fmt.Errorf("incorrect team ID")
+	}
+
+	if g.isFastestShot(shot.Speed) {
+		g.saveFastestShot(shot)
+	}
+
+	return nil
 }
 
-func (g *game) GetFastestShot() adapter.ShotMessage {
+func (g *game) isFastestShot(speed float64) bool {
+	return g.shotsData.Fastest.Speed < speed
+}
+
+func (g *game) saveFastestShot(shot adapter.ShotMessage) {
+	g.shotsData.Fastest.Speed = shot.Speed
+	g.shotsData.Fastest.Team = shot.Team
+}
+
+func (g *game) GetShotsData() ShotsData {
+	log.Trace("mutex lock: GetRecordedShots")
 	g.m.RLock()
 	defer g.m.RUnlock()
 
-	return g.fastestShot
+	return g.shotsData
 }
 
 func (g *game) WriteToHeatmap(xCord float64, yCord float64) error {

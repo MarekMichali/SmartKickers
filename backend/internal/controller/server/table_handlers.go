@@ -83,10 +83,14 @@ func (s server) ShotParametersHandler(w http.ResponseWriter, r *http.Request) {
 		shot, err := adapter.UnpackShotMsg(receivedMsg)
 		if err != nil {
 			log.Error(err)
+			continue
 		}
-		if s.game.IsFastestShot(shot.Speed) {
-			s.game.SaveFastestShot(shot)
+
+		err = s.game.UpdateShotsData(shot)
+		if err != nil {
+			log.Error(err)
 		}
+
 		log.Debug(shot)
 	}
 }

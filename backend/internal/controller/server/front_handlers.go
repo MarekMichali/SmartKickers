@@ -97,7 +97,7 @@ func isValidTeamID(teamID int) bool {
 }
 
 func (s server) ShowStatsHandler(w http.ResponseWriter, r *http.Request) {
-	response, err := json.Marshal(s.game.GetFastestShot())
+	response, err := json.Marshal(s.game.GetShotsData().Fastest)
 	if err != nil {
 		log.Error(err)
 		err = writeHTTPError(w, http.StatusInternalServerError, "Couldn't get fastest shot")
