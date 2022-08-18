@@ -146,6 +146,7 @@ func (g *game) GetShotsData() ShotsData {
 }
 
 func (g *game) WriteToHeatmap(xCord float64, yCord float64) error {
+	log.Trace("mutex lock: WriteToHeatmap")
 	g.m.Lock()
 	defer g.m.Unlock()
 
