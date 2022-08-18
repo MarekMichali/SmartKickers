@@ -3,12 +3,16 @@ import './App.css';
 import { resetGame } from './apis/Game';
 import { Button } from './components/Button';
 import GameResults from './components/GameResults.js';
+import Heatmap from './components/Heatmap/Heatmap';
 
 import config from './config';
+import { getHeatmapData } from './apis/heatmap';
 
 function App() {
   const [blueScore, setBlueScore] = useState(0);
   const [whiteScore, setWhiteScore] = useState(0);
+  const [clicked, setClicked] = useState(0);
+  const [heatmap, setHeatmap] = useState([]);
 
   useEffect(() => {
 
@@ -31,13 +35,25 @@ function App() {
     });
   }
 
+  let heatMapTable = []
+  async function getHeatmap() {
+    heatMapTable = await getHeatmapData()
+    setClicked(true)
+    console.log(heatMapTable)
+  }
+
+  
+
   return (
     <>
       <h1>Smart Kickers</h1>
       <GameResults blueScore={blueScore} whiteScore={whiteScore} />
       <center>
         <Button onClick={() => handleResetGame()}>Reset game</Button>
+        <Button onClick={() => getHeatmap()}>Stats</Button>
       </center>
+      {clicked ? (<Heatmap heatMapTable={heatMapTable}/>) : null}
+      {/* <Heatmap heatMapTable={heatMapTable}/> */}
     </>
   );
 }
