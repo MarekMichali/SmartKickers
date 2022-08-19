@@ -39,7 +39,8 @@ function App() {
   async function getHeatmap() {
     heatMapTable = await getHeatmapData()
     setClicked(true)
-    console.log(heatMapTable)
+    setHeatmap(heatMapTable)
+    console.log(heatmap)
   }
 
   
@@ -52,7 +53,7 @@ function App() {
         <Button onClick={() => handleResetGame()}>Reset game</Button>
         <Button onClick={() => getHeatmap()}>Stats</Button>
       </center>
-      {clicked ? (<Heatmap heatMapTable={heatMapTable}/>) : null}
+      {clicked && <Heatmap heatMapTable={heatmap}/>}
       {/* <Heatmap heatMapTable={heatMapTable}/> */}
     </>
   );
