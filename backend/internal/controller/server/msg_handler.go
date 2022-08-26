@@ -69,6 +69,7 @@ func (s server) createResponse(reader io.Reader) ([]byte, error) {
 		return nil, err
 	case adapter.MsgPosition:
 		log.Trace("X: ", message.X, " Y: ", message.Y)
+		s.game.WriteToHeatmap(message.X, message.Y)
 		return nil, nil
 	default:
 		return nil, fmt.Errorf("unrecognized message type %d", message.Category)
@@ -213,7 +214,7 @@ func (s server) ShotParametersHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s server) ShowStatsHandler(w http.ResponseWriter, r *http.Request) {
-	response, err := json.Marshal(s.game.GetShotsData().Fastest)
+	response, err := json.Marshal(s.game.GetShotsData())
 	if err != nil {
 		log.Error(err)
 		err = writeHTTPError(w, http.StatusInternalServerError, "Couldn't get fastest shot")

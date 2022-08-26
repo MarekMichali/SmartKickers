@@ -27,7 +27,6 @@ type game struct {
 	shotsData    ShotsData
 	scoreChannel chan GameScore
 	m            sync.RWMutex
-	heatmap      [config.HeatmapAccuracy][config.HeatmapAccuracy]int
 }
 
 type GameScore struct {
@@ -39,6 +38,7 @@ type ShotsData struct {
 	WhiteCount int
 	BlueCount  int
 	Fastest    Shot
+	Heatmap    [config.HeatmapAccuracy][config.HeatmapAccuracy]int
 }
 
 type Shot struct {
@@ -163,6 +163,6 @@ func (g *game) WriteToHeatmap(xCord float64, yCord float64) error {
 	if y > heatmapIndex || y < 0 {
 		return errors.New("y ball position out of index")
 	}
-	g.heatmap[x][y]++
+	g.shotsData.Heatmap[x][y]++
 	return nil
 }
