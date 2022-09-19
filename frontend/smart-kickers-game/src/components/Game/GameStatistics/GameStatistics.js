@@ -32,14 +32,15 @@ function GameStatistics({ finalScores, onNewGameRequested }) {
         <div className="table-with-stats">
           <TeamIcons />
           <FinalScores blue={finalScores.blueScore} white={finalScores.whiteScore} />
-          <FastestShot fastestShot={statistics.fastestShot} />
+          <FastestShot fastestShot={statistics} />
           <ManualChangedGoals blue={TeamID.Team_blue} white={TeamID.Team_white} statistics={statistics} />
           <NumberOfShots statistics={statistics} />{' '}
         </div>
       ) : (
         <div className="no-statistics">Something went wrong, statistics went on the vacation and we don't have it</div>
       )}
-      <Heatmap />
+      {/* <Heatmap />
+       */}{' '}
       <Button
         className="btn--primary new-game-btn"
         onClick={() => {
